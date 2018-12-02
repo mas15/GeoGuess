@@ -1,0 +1,2 @@
+AMQP_URI: 'pyamqp://guest@rabbitmq'
+max_workers: 10
