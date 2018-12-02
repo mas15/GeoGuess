@@ -1,6 +1,6 @@
 import random
 from nameko.web.handlers import http
-from app.dependencies import LocationsProvider, TemplateProvider, CurrentAnswersProvider
+from dependencies import LocationsProvider, TemplateProvider, CurrentAnswersProvider
 
 
 class GeoGuessService:
@@ -11,15 +11,16 @@ class GeoGuessService:
 
     @http('GET, POST', "/")
     def game(self, request):
+        guess_result = None
         answer = request.get_data()
         if answer:
-            if answer == self.current_answer:
+            if answer == self.current_answer.location.id:
                 guess_result = "Good guess"
             else:
-                guess_result = f"Wrong guess, it was {self.current_answer}"
+                guess_result = f"Wrong guess, it was {self.current_answer.location.name}"
 
         puzzle = self.get_new_puzzle()
-        self.current_answer = puzzle.location.id
+        self.current_answer.location = puzzle.location
 
         return self.template.render(
             all_locations=self.locations,

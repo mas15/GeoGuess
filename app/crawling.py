@@ -1,7 +1,7 @@
 import csv
 import requests
 from lxml import html
-from app.models import Location
+from models import Location
 
 WIKI_DOMAIN = 'https://pl.wikipedia.org'
 START_URL = '/wiki/Kategoria:Pomniki_historii'

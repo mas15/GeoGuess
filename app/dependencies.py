@@ -1,8 +1,9 @@
 import os
 import secrets
+from collections import defaultdict
 from jinja2 import Environment, FileSystemLoader
 from nameko.extensions import DependencyProvider
-from app.crawling import save_locations, crawl_locations, NoLocationsCrawled
+from crawling import save_locations, load_locations, crawl_locations, NoLocationsCrawled
 
 TEMPLATES_PATH = os.path.join(os.path.dirname(__file__), 'templates')
 LOCATIONS_FILE = os.path.join(os.path.dirname(__file__), 'locations.csv')
@@ -11,7 +12,7 @@ LOCATIONS_FILE = os.path.join(os.path.dirname(__file__), 'locations.csv')
 class LocationsProvider(DependencyProvider):
     def setup(self):
         try:
-            self.locations = self.load_locations(LOCATIONS_FILE)
+            self.locations = load_locations(LOCATIONS_FILE)
         except NoLocationsCrawled:
             self.locations = crawl_locations()
             save_locations(self.locations, LOCATIONS_FILE)
@@ -34,13 +35,17 @@ class TemplateProvider(DependencyProvider):
 class CurrentAnswersProvider(DependencyProvider):
 
     def __init__(self):
-        self.answers = dict()
+        self.answers = defaultdict(None)
 
     def get_dependency(self, worker_ctx):
+        class Answer:
+            def __init__(self, answer):
+                self.answer = answer
+
         try:
             user_id = worker_ctx.data['user_id']
         except KeyError:
             user_id = secrets.token_urlsafe(16)
             worker_ctx.data['user_id'] = user_id
-        return self.answers[user_id]
 
+        return Answer(self.answers[user_id])
