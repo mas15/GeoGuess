@@ -3,34 +3,20 @@ networks:
   geo:
 
 services:
-  rabbitmq:
-    image: rabbitmq:latest
-    networks:
-      geo:
-        aliases:
-        - rabbitmq
-    ports:
-      - target: 5672
-        published: 1235
-        mode: host
-
   geoguess:
     image: geoguess:latest
     ports:
-      - target: 8000
-        published: 1237
+      - target: 5000
+        published: 5000
         mode: host
     volumes:
       - type: bind
-        source: ./app/
-        target: /app/
+        source: ./geo/
+        target: /geo/
     networks:
       geo:
         aliases:
         - geoguess
     environment:
     - "PYTHONUNBUFFERED=0"
-    - "AMQP_URI=pyamqp://guest@rabbitmq"
     restart: on-failure
-    depends_on:
-      - rabbitmq

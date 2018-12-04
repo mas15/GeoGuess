@@ -1,7 +1,7 @@
 import csv
 import requests
 from lxml import html
-from models import Location
+from geo.models import Location
 
 WIKI_DOMAIN = 'https://pl.wikipedia.org'
 START_URL = '/wiki/Kategoria:Pomniki_historii'
@@ -45,8 +45,8 @@ def crawl_location(monument):
     response = requests.get(WIKI_DOMAIN + monument[1])
     tree = html.fromstring(response.content)
     try:
-        latitude = tree.xpath('//span[@class="latitude"]/text()')[0]
-        longitude = tree.xpath('//span[@class="longitude"]/text()')[0]
+        latitude = tree.xpath('//span[@class="latitude"]/text()')[1]
+        longitude = tree.xpath('//span[@class="longitude"]/text()')[1]
     except IndexError:
         return None
     return Location(monument[0], latitude, longitude)
@@ -56,7 +56,7 @@ def load_locations(locations_file):
     try:
         with open(locations_file) as csvfile:
             csv_reader = csv.reader(csvfile)
-            locations = [row for row in csv_reader]
+            locations = [Location(*row) for row in csv_reader]
             return locations
     except FileNotFoundError:
         raise NoLocationsCrawled
@@ -65,9 +65,8 @@ def load_locations(locations_file):
 def save_locations(locations, locations_file):
     with open(locations_file, 'w') as csvfile:
         csv_out = csv.writer(csvfile)
-        csv_out.writerow(['id', 'name', 'latitude', 'longitude'])
         for l in locations:
-            csv_out.writerow(l.id, l.name, l.latitude, l.longitude)
+            csv_out.writerow([l.name, l.latitude, l.longitude])
 
 
 if __name__ == '__main__':
